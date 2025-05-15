@@ -83,8 +83,8 @@ a = Analysis(
         'jupyter',
         'pandas',
         'sklearn',
-        'spacy',
-        'thinc',
+        # 'spacy',  # Required by Misaki
+        # 'thinc',  # Required by spacy
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
