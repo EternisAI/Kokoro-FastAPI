@@ -1,5 +1,6 @@
 """Kokoro V1 model management."""
 
+import sys
 from typing import Optional
 
 from loguru import logger
@@ -94,7 +95,7 @@ Model files not found! You need to download the Kokoro V1 model:
 2. Or set environment variable in docker-compose:
    DOWNLOAD_MODEL=true
 """)
-            exit(0)
+            sys.exit(0)
         except Exception as e:
             raise RuntimeError(f"Warmup failed: {e}")
 
