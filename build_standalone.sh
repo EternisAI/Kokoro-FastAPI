@@ -23,15 +23,8 @@ cp -r dist/kokoro-tts build/
 
 echo "Copying model files..."
 mkdir -p build/kokoro-tts/_internal/api/src/models/v1_0
-cp -r api/src/models/v1_0/* build/kokoro-tts/_internal/api/src/models/v1_0/
+cp api/src/models/v1_0/kokoro-v1_0.pth build/kokoro-tts/_internal/api/src/models/v1_0/
 
-echo "Copying voice files..."
-mkdir -p build/kokoro-tts/_internal/api/src/voices/v1_0
-cp -r api/src/voices/v1_0/* build/kokoro-tts/_internal/api/src/voices/v1_0/
-
-echo "Copying web files..."
-mkdir -p build/kokoro-tts/_internal/web
-cp -r web/* build/kokoro-tts/_internal/web/
 
 echo "Copying openai_mappings.json..."
 mkdir -p build/kokoro-tts/_internal/api/src/core
