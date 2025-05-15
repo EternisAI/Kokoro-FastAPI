@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os
+import site
 from pathlib import Path
 
 block_cipher = None
@@ -40,6 +41,18 @@ for root, dirs, files in os.walk(web_dir):
         relative_path = os.path.relpath(source_path, project_root)
         web_files.append((source_path, relative_path))
 
+# Get site-packages directory
+site_packages = site.getsitepackages()[0]
+
+# Collect language_tags data files
+language_tags_data = []
+language_tags_dir = os.path.join(site_packages, 'language_tags', 'data', 'json')
+for file in os.listdir(language_tags_dir):
+    if file.endswith('.json'):
+        source_path = os.path.join(language_tags_dir, file)
+        dest_path = os.path.join('language_tags', 'data', 'json', file)
+        language_tags_data.append((source_path, dest_path))
+
 # Use a more optimized approach - don't include model data in the executable
 a = Analysis(
     ['kokoro_tts_entry.py'],
@@ -48,7 +61,7 @@ a = Analysis(
     datas=[
         # Don't include model files in the executable
         (config_file, os.path.join('api', 'src', 'models', 'v1_0')),
-    ] + voice_files + web_files,
+    ] + voice_files + web_files + language_tags_data,
     hiddenimports=[
         'uvicorn.logging',
         'uvicorn.lifespan.on',
@@ -71,6 +84,10 @@ a = Analysis(
         'misaki.ja',
         'misaki.ko',
         'misaki.zh',
+        'language_tags',
+        'language_tags.tags',
+        'language_tags.Subtag',
+        'language_tags.data',
     ],
     hookspath=[],
     hooksconfig={},

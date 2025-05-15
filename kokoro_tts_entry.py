@@ -4,6 +4,7 @@
 import os
 import sys
 import uvicorn
+import shutil
 
 if getattr(sys, 'frozen', False):
     if hasattr(sys, '_MEIPASS'):
@@ -31,9 +32,16 @@ else:
 os.environ["USE_GPU"] = "false"
 os.environ["USE_ONNX"] = "false"
 
+if os.path.exists("/usr/lib/x86_64-linux-gnu/espeak-ng-data"):
+    os.environ["ESPEAK_DATA_PATH"] = "/usr/lib/x86_64-linux-gnu/espeak-ng-data"
+elif os.path.exists("/usr/share/espeak-ng-data"):
+    os.environ["ESPEAK_DATA_PATH"] = "/usr/share/espeak-ng-data"
+
 print(f"MODEL_DIR: {os.environ['MODEL_DIR']}")
 print(f"VOICES_DIR: {os.environ['VOICES_DIR']}")
 print(f"WEB_PLAYER_PATH: {os.environ['WEB_PLAYER_PATH']}")
+if "ESPEAK_DATA_PATH" in os.environ:
+    print(f"ESPEAK_DATA_PATH: {os.environ['ESPEAK_DATA_PATH']}")
 
 if __name__ == "__main__":
     print("Starting Kokoro TTS server...")
