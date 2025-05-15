@@ -4,17 +4,24 @@ set -e
 
 echo "Testing Kokoro TTS standalone executable..."
 
-if [ ! -f ./build/kokoro-tts ]; then
-    echo "Error: Executable not found. Please run build_standalone.sh first."
+if [ ! -d ./build/kokoro-tts ]; then
+    echo "Error: Distribution directory not found. Please run build_standalone.sh first."
+    exit 1
+fi
+
+if [ ! -f ./build/kokoro-tts/kokoro-tts ]; then
+    echo "Error: Executable not found in distribution directory. Please run build_standalone.sh first."
     exit 1
 fi
 
 echo "Starting the server..."
-./build/kokoro-tts > server.log 2>&1 &
+cd ./build/kokoro-tts
+./kokoro-tts > ../../server.log 2>&1 &
 SERVER_PID=$!
+cd ../..
 
 echo "Waiting for server to start..."
-sleep 5
+sleep 10
 
 echo "Testing health endpoint..."
 HEALTH_RESPONSE=$(curl -s http://localhost:8880/health)

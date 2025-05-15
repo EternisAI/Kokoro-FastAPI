@@ -6,7 +6,7 @@ from pathlib import Path
 block_cipher = None
 
 # Get the project root directory
-project_root = os.path.abspath(os.path.dirname(__file__))
+project_root = os.path.abspath(os.getcwd())
 
 # Define paths for model and voice files
 model_dir = os.path.join(project_root, 'api', 'src', 'models', 'v1_0')
@@ -40,12 +40,13 @@ for root, dirs, files in os.walk(web_dir):
         relative_path = os.path.relpath(source_path, project_root)
         web_files.append((source_path, relative_path))
 
+# Use a more optimized approach - don't include model data in the executable
 a = Analysis(
     ['kokoro_tts_entry.py'],
     pathex=[project_root],
     binaries=[],
     datas=[
-        (model_file, os.path.join('api', 'src', 'models', 'v1_0')),
+        # Don't include model files in the executable
         (config_file, os.path.join('api', 'src', 'models', 'v1_0')),
     ] + voice_files + web_files,
     hiddenimports=[
@@ -74,7 +75,17 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        # Exclude unnecessary packages to reduce size
+        'matplotlib',
+        'notebook',
+        'ipython',
+        'jupyter',
+        'pandas',
+        'sklearn',
+        'spacy',
+        'thinc',
+    ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,
@@ -86,21 +97,29 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    [],
+    [],  # Don't include binaries in the executable
+    exclude_binaries=True,  # This is key - exclude binaries from executable
     name='kokoro-tts',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+)
+
+# Create a directory containing the executable and all dependencies
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='kokoro-tts',
 )
