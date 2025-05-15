@@ -20,8 +20,26 @@ cd ./build/kokoro-tts
 SERVER_PID=$!
 cd ../..
 
-echo "Waiting for server to start..."
-sleep 10
+echo "Waiting for server to start (this may take up to 60 seconds)..."
+MAX_WAIT=60
+WAIT_COUNT=0
+SERVER_READY=false
+
+while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+    if curl -s http://localhost:8880/health > /dev/null 2>&1; then
+        SERVER_READY=true
+        break
+    fi
+    sleep 5
+    WAIT_COUNT=$((WAIT_COUNT + 5))
+    echo "Still waiting... ($WAIT_COUNT seconds)"
+done
+
+if [ "$SERVER_READY" = false ]; then
+    echo "Server did not start within $MAX_WAIT seconds. Check server.log for errors."
+    kill $SERVER_PID
+    exit 1
+fi
 
 echo "Testing health endpoint..."
 HEALTH_RESPONSE=$(curl -s http://localhost:8880/health)
