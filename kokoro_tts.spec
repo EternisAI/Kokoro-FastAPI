@@ -50,7 +50,8 @@ language_tags_dir = os.path.join(site_packages, 'language_tags', 'data', 'json')
 for file in os.listdir(language_tags_dir):
     if file.endswith('.json'):
         source_path = os.path.join(language_tags_dir, file)
-        dest_path = os.path.join('language_tags', 'data', 'json', file)
+        # Create the full directory structure for the destination
+        dest_path = os.path.join('language_tags', 'data', 'json')
         language_tags_data.append((source_path, dest_path))
 
 # Use a more optimized approach - don't include model data in the executable
