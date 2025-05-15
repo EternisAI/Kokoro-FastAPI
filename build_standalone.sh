@@ -2,31 +2,20 @@
 
 set -e
 
-echo "Building Kokoro TTS standalone executable..."
+echo "Building Kokoro TTS standalone executable for Linux..."
+
+export TMPDIR=/home/ubuntu/kokoro_tmp
+mkdir -p $TMPDIR
+
+pip install -e .
 
 mkdir -p build
-cd build
 
-echo "Running PyOxidizer build..."
-cd ../pyoxidizer.bzl
-pyoxidizer build --release
+python docker/scripts/download_model.py --output api/src/models/v1_0
 
-echo "Copying executable to build directory..."
-cp build/*/release/install/kokoro-tts ../build/
+pyinstaller --clean kokoro_tts.spec
 
-cd ../build
-mkdir -p models/v1_0
-mkdir -p voices/v1_0
-mkdir -p web
-
-echo "Downloading model files..."
-python ../docker/scripts/download_model.py --output models/v1_0
-
-echo "Copying voice files..."
-cp -r ../api/src/voices/v1_0/* voices/v1_0/
-
-echo "Copying web files..."
-cp -r ../web/* web/
+cp dist/kokoro-tts build/
 
 echo "Build completed successfully!"
 echo "The standalone executable is available at ./build/kokoro-tts"
