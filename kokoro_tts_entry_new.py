@@ -129,15 +129,10 @@ except Exception as e:
 try:
     import subprocess
     subprocess.run(["which", "ffmpeg"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print("ffmpeg found")
 except (subprocess.CalledProcessError, FileNotFoundError):
-    print("ffmpeg not found, attempting to install...")
-    try:
-        subprocess.run(["apt-get", "update", "-y"], check=True)
-        subprocess.run(["apt-get", "install", "-y", "ffmpeg"], check=True)
-        print("ffmpeg installed successfully")
-    except Exception as e:
-        print(f"Warning: Failed to install ffmpeg: {e}")
-        print("Audio conversion may not work properly")
+    print("ffmpeg not found. Audio conversion may not work properly.")
+    os.environ["FFMPEG_MISSING"] = "true"
 
 print(f"MODEL_DIR: {os.environ['MODEL_DIR']}")
 print(f"VOICES_DIR: {os.environ['VOICES_DIR']}")

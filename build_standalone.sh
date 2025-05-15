@@ -7,6 +7,12 @@ echo "Building Kokoro TTS standalone executable for Linux..."
 export TMPDIR=/home/ubuntu/kokoro_tmp
 mkdir -p $TMPDIR
 
+if ! command -v ffmpeg &> /dev/null; then
+    echo "Installing ffmpeg..."
+    sudo apt-get update -y
+    sudo apt-get install -y ffmpeg
+fi
+
 pip install -e .
 
 mkdir -p build
@@ -34,6 +40,12 @@ cp api/src/voices/v1_0/*.pt build/kokoro-tts/_internal/api/src/voices/v1_0/
 echo "Copying openai_mappings.json..."
 mkdir -p build/kokoro-tts/_internal/api/src/core
 cp api/src/core/openai_mappings.json build/kokoro-tts/_internal/api/src/core/
+
+if command -v ffmpeg &> /dev/null; then
+    echo "Copying ffmpeg binary..."
+    FFMPEG_PATH=$(which ffmpeg)
+    cp $FFMPEG_PATH build/kokoro-tts/
+fi
 
 echo "Build completed successfully!"
 echo "The standalone distribution is available at ./build/kokoro-tts/"
