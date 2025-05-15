@@ -56,7 +56,7 @@ for file in os.listdir(language_tags_dir):
 
 # Use a more optimized approach - don't include model data in the executable
 a = Analysis(
-    ['kokoro_tts_entry.py'],
+    ['kokoro_tts_entry_new.py'],  # Use the new entry point with inspect module patches
     pathex=[project_root],
     binaries=[],
     datas=[
@@ -79,6 +79,8 @@ a = Analysis(
         'api.src.routers.openai_compatible',
         'api.src.routers.web_player',
         'api.src.services.temp_manager',
+        'api.src.services.text_processing',
+        'api.src.services.text_processing.normalizer',
         'kokoro',
         'misaki',
         'misaki.en',
@@ -89,6 +91,13 @@ a = Analysis(
         'language_tags.tags',
         'language_tags.Subtag',
         'language_tags.data',
+        'inflect',
+        'typeguard',
+        'typeguard._decorators',
+        'inspect',
+        'types',
+        'warnings',
+        'subprocess',
     ],
     hookspath=[],
     hooksconfig={},
