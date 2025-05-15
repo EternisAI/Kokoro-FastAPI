@@ -24,7 +24,7 @@ cp -r dist/kokoro-tts build/
 echo "Copying model files..."
 mkdir -p build/kokoro-tts/_internal/api/src/models/v1_0/v1_0
 cp api/src/models/v1_0/kokoro-v1_0.pth build/kokoro-tts/_internal/api/src/models/v1_0/v1_0/
-cp api/src/models/v1_0/config.json build/kokoro-tts/_internal/api/src/models/v1_0/
+cp api/src/models/v1_0/config.json build/kokoro-tts/_internal/api/src/models/v1_0/v1_0/
 
 
 echo "Copying openai_mappings.json..."
