@@ -11,6 +11,18 @@ import json
 import inspect
 import types
 import warnings
+import traceback
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("kokoro_debug.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("kokoro_tts")
 
 original_getsource = inspect.getsource
 original_getsourcelines = inspect.getsourcelines
@@ -47,6 +59,14 @@ inspect.getsourcelines = patched_getsourcelines
 inspect.findsource = patched_findsource
 
 warnings.filterwarnings("ignore", "Couldn't find ffmpeg or avconv")
+warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.modules.rnn")
+warnings.filterwarnings("ignore", category=FutureWarning, module="torch.nn.utils.weight_norm")
+
+def exception_handler(exc_type, exc_value, exc_traceback):
+    logger.error("Unhandled exception", exc_info=(exc_type, exc_value, exc_traceback))
+    sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+sys.excepthook = exception_handler
 
 if getattr(sys, 'frozen', False):
     if hasattr(sys, '_MEIPASS'):
@@ -139,6 +159,44 @@ print(f"VOICES_DIR: {os.environ['VOICES_DIR']}")
 print(f"WEB_PLAYER_PATH: {os.environ['WEB_PLAYER_PATH']}")
 print(f"ESPEAK_DATA_PATH: {os.environ['ESPEAK_DATA_PATH']}")
 
+def list_directory_contents(path):
+    """List all files and directories at the given path."""
+    logger.debug(f"Listing contents of directory: {path}")
+    try:
+        if os.path.exists(path) and os.path.isdir(path):
+            contents = os.listdir(path)
+            for item in contents:
+                item_path = os.path.join(path, item)
+                if os.path.isdir(item_path):
+                    logger.debug(f"  DIR: {item}")
+                else:
+                    logger.debug(f"  FILE: {item} ({os.path.getsize(item_path)} bytes)")
+        else:
+            logger.warning(f"Path does not exist or is not a directory: {path}")
+    except Exception as e:
+        logger.error(f"Error listing directory contents: {e}")
+
 if __name__ == "__main__":
-    print("Starting Kokoro TTS server...")
-    uvicorn.run("api.src.main:app", host="0.0.0.0", port=8880)
+    try:
+        logger.info("Starting Kokoro TTS server...")
+        
+        logger.debug("Environment variables:")
+        for key, value in os.environ.items():
+            if key in ["MODEL_DIR", "VOICES_DIR", "WEB_PLAYER_PATH", "ESPEAK_DATA_PATH", "USE_GPU", "USE_ONNX"]:
+                logger.debug(f"  {key}={value}")
+        
+        model_dir = os.environ.get("MODEL_DIR")
+        if model_dir:
+            list_directory_contents(model_dir)
+            list_directory_contents(os.path.join(model_dir, "v1_0"))
+        
+        voices_dir = os.environ.get("VOICES_DIR")
+        if voices_dir:
+            list_directory_contents(voices_dir)
+        
+        logger.info("Starting uvicorn server...")
+        uvicorn.run("api.src.main:app", host="0.0.0.0", port=8880)
+    except Exception as e:
+        logger.critical(f"Failed to start server: {e}")
+        logger.critical(traceback.format_exc())
+        sys.exit(1)
