@@ -93,6 +93,7 @@ else:
 
 os.environ["USE_GPU"] = "false"
 os.environ["USE_ONNX"] = "false"
+os.environ["DEFAULT_VOICE_CODE"] = "en"  # Set default voice code to English
 
 espeak_data_paths = [
     "/usr/lib/x86_64-linux-gnu/espeak-ng-data",

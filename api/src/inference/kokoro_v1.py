@@ -77,12 +77,35 @@ class KokoroV1(BaseModelBackend):
         if not self._model:
             raise RuntimeError("Model not loaded")
 
-        if lang_code not in self._pipelines:
-            logger.info(f"Creating new pipeline for language code: {lang_code}")
-            self._pipelines[lang_code] = KPipeline(
-                lang_code=lang_code, model=self._model, device=self._device
-            )
-        return self._pipelines[lang_code]
+        fallback_map = {
+            'a': 'en',  # Map 'a' to English
+            'b': 'en',  # Map 'b' to English
+            'e': 'en',  # Map 'e' to English
+            'h': 'en',  # Map 'h' to English
+            'i': 'en',  # Map 'i' to English
+            'p': 'en',  # Map 'p' to English
+            'z': 'zh',  # Map 'z' to Chinese
+            'j': 'ja',  # Map 'j' to Japanese
+        }
+        
+        effective_lang_code = fallback_map.get(lang_code, lang_code)
+        
+        if effective_lang_code not in self._pipelines:
+            logger.info(f"Creating new pipeline for language code: {lang_code} (using {effective_lang_code})")
+            try:
+                self._pipelines[effective_lang_code] = KPipeline(
+                    lang_code=effective_lang_code, model=self._model, device=self._device
+                )
+            except Exception as e:
+                logger.error(f"Failed to create pipeline for {effective_lang_code}: {e}")
+                if effective_lang_code != 'en' and 'en' not in self._pipelines:
+                    logger.info("Falling back to English pipeline")
+                    self._pipelines['en'] = KPipeline(
+                        lang_code='en', model=self._model, device=self._device
+                    )
+                    return self._pipelines['en']
+                raise
+        return self._pipelines[effective_lang_code]
 
     async def generate_from_tokens(
         self,

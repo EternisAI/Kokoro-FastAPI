@@ -47,6 +47,10 @@ if command -v ffmpeg &> /dev/null; then
     cp $FFMPEG_PATH build/kokoro-tts/
 fi
 
+echo "Setting default voice code to English..."
+echo 'export DEFAULT_VOICE_CODE="en"' > build/kokoro-tts/env.sh
+chmod +x build/kokoro-tts/env.sh
+
 echo "Build completed successfully!"
 echo "The standalone distribution is available at ./build/kokoro-tts/"
 echo "To run the server, execute: ./build/kokoro-tts/kokoro-tts"
