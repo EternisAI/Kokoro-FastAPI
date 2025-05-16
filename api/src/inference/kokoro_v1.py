@@ -102,8 +102,9 @@ class KokoroV1(BaseModelBackend):
         if effective_lang_code not in self._pipelines:
             logger.info(f"Creating new pipeline for language code: {lang_code} (using {effective_lang_code})")
             try:
+                lang_code_str = str(effective_lang_code)
                 self._pipelines[effective_lang_code] = KPipeline(
-                    lang_code=effective_lang_code, model=self._model, device=self._device
+                    lang_code=lang_code_str, model=self._model, device=self._device
                 )
             except Exception as e:
                 logger.error(f"Failed to create pipeline for {effective_lang_code}: {e}")
