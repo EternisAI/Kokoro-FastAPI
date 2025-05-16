@@ -76,7 +76,7 @@ class ModelManager:
                 # Use default voice name for warmup
                 voice_name = settings.default_voice
                 logger.debug(f"Using default voice '{voice_name}' for warmup")
-                async for _ in self.generate(warmup_text, (voice_name, voice_path)):
+                async for _ in self.generate(warmup_text, voice_path, lang_code=voice_name[0].lower()):
                     pass
             except Exception as e:
                 raise RuntimeError(f"Failed to get default voice: {e}")
