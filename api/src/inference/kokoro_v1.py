@@ -285,15 +285,17 @@ class KokoroV1(BaseModelBackend):
             voice_path = temp_path
 
             # Use provided lang_code, settings voice code override, or first letter of voice name
-            pipeline_lang_code = (
-                lang_code
-                if lang_code
-                else (
-                    settings.default_voice_code
-                    if settings.default_voice_code
-                    else voice_name[0].lower()
-                )
-            )
+            if lang_code:
+                pipeline_lang_code = lang_code
+            elif settings.default_voice_code:
+                pipeline_lang_code = settings.default_voice_code
+            else:
+                pipeline_lang_code = voice_name[0].lower()
+                
+            if not isinstance(pipeline_lang_code, str):
+                logger.warning(f"Non-string language code detected: {pipeline_lang_code}, using 'en' instead")
+                pipeline_lang_code = 'en'
+                
             pipeline = self._get_pipeline(pipeline_lang_code)
 
             logger.debug(
