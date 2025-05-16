@@ -77,6 +77,8 @@ class KokoroV1(BaseModelBackend):
         if not self._model:
             raise RuntimeError("Model not loaded")
 
+        safe_lang_codes = ['en', 'zh', 'ja', 'ko']
+        
         fallback_map = {
             'a': 'en',  # Map 'a' to English
             'b': 'en',  # Map 'b' to English
@@ -86,9 +88,16 @@ class KokoroV1(BaseModelBackend):
             'p': 'en',  # Map 'p' to English
             'z': 'zh',  # Map 'z' to Chinese
             'j': 'ja',  # Map 'j' to Japanese
+            'k': 'ko',  # Map 'k' to Korean
+            'f': 'en',  # Map 'f' to English as fallback
         }
         
         effective_lang_code = fallback_map.get(lang_code, lang_code)
+        
+        # If not in safe list, default to English
+        if effective_lang_code not in safe_lang_codes:
+            logger.warning(f"Language code '{effective_lang_code}' not in safe list, defaulting to 'en'")
+            effective_lang_code = 'en'
         
         if effective_lang_code not in self._pipelines:
             logger.info(f"Creating new pipeline for language code: {lang_code} (using {effective_lang_code})")
@@ -100,11 +109,16 @@ class KokoroV1(BaseModelBackend):
                 logger.error(f"Failed to create pipeline for {effective_lang_code}: {e}")
                 if effective_lang_code != 'en' and 'en' not in self._pipelines:
                     logger.info("Falling back to English pipeline")
-                    self._pipelines['en'] = KPipeline(
-                        lang_code='en', model=self._model, device=self._device
-                    )
-                    return self._pipelines['en']
+                    try:
+                        self._pipelines['en'] = KPipeline(
+                            lang_code='en', model=self._model, device=self._device
+                        )
+                        return self._pipelines['en']
+                    except Exception as inner_e:
+                        logger.error(f"Failed to create English fallback pipeline: {inner_e}")
+                        raise RuntimeError(f"Could not create any pipeline: {e}, fallback error: {inner_e}")
                 raise
+        
         return self._pipelines[effective_lang_code]
 
     async def generate_from_tokens(
